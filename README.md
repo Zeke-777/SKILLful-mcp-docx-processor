@@ -1,36 +1,31 @@
+<div align="center">
+
 # SKILLful MCP Docx Processor
 
 [English](README.md) | [中文](README-zh.md)
 
-A Word document processing service based on [FastMCP](https://github.com/jlowin/fastmcp) and [python-docx](https://python-docx.readthedocs.io/), exposing a single gateway tool (`docx_process`) that routes to **63 operations**, covering the full document lifecycle: creation, editing, formatting, and querying.
+A Word document processing service based on [FastMCP](https://github.com/modelcontextprotocol/python-sdk) and [python-docx](https://python-docx.readthedocs.io/), exposing a single gateway tool (`docx_process`) that routes to **63 operations**, covering the full document lifecycle: creation, editing, formatting, and querying.
 
 Designed for seamless integration with [Claude Code](https://docs.anthropic.com/en/docs/claude-code) via the MCP protocol and Claude's skill system.
 
+</div>
+
+---
+
 ## Features
 
-### Document Management (7)
-Create, open, save, save-as, copy, close, and reload documents. Includes lock file detection and save retry logic.
+| Category                 | Count  | Description                                                             |
+| ------------------------ | ------ | ----------------------------------------------------------------------- |
+| Document Management      | 7      | Create, open, save, save-as, copy, close, reload                        |
+| Content Addition         | 8      | Paragraphs, headings, tables, lists, images, page breaks, sections, TOC |
+| Content Editing          | 9      | Search, replace, preview, section replace, keyword edit, delete         |
+| Table Operations         | 8      | Rows, columns, merge/split cells, borders, shading                      |
+| Formatting               | 20     | Page layout, paragraph, text, styles, hyperlinks                        |
+| Style Management         | 3      | Create, modify, list styles                                             |
+| Annotations & References | 8      | Bookmarks, comments, footnotes, endnotes, queries                       |
+| **Total**                | **63** |                                                                         |
 
-### Content Addition (8)
-Add paragraphs, headings (1-9), tables, list items (bulleted/numbered with 0-8 indent levels), images, page breaks, sections, and table of contents.
-
-### Content Editing (8)
-Search text across paragraphs and tables, search-and-replace with preview mode, replace sections by heading, edit by keyword, delete paragraphs/text, and edit table cells.
-
-### Table Operations (8)
-Add/delete rows and columns, merge/split cells, set table borders and cell shading.
-
-### Formatting (19)
-Page margins, orientation, size, headers/footers, columns, page numbers, line spacing, paragraph spacing/indent, paragraph borders/shading, text highlight/strikethrough/superscript/subscript, text direction (LTR/RTL), tab stops, hyperlinks, and cell formatting.
-
-### Style Management (3)
-Create, modify, and list document styles (paragraph, character, table, list).
-
-### Annotations & References (4)
-Add bookmarks, comments, footnotes, and endnotes.
-
-### Query (4)
-Get document metadata, paragraph details with format JSON, table cell content, and page layout info.
+---
 
 ## Requirements
 
@@ -50,11 +45,23 @@ uv sync
 
 ## Configure MCP Server
 
-MCP server configuration supports two levels:
+### Claude Code
 
-### Project-level Configuration
+For Claude Code CLI:
 
-Add the following to the target project's `.claude/settings.local.json` (takes effect for the current project only):
+```bash
+# Project-level (creates .mcp.json in current directory)
+claude mcp add -s project docx-processor -- uv run --directory /path/to/SKILLful-mcp-docx-processor python server.py
+
+# Or global (available in all projects)
+claude mcp add -s user docx-processor -- uv run --directory /path/to/SKILLful-mcp-docx-processor python server.py
+```
+
+Replace `/path/to/SKILLful-mcp-docx-processor` with your actual project path.
+
+### Manual JSON Configuration
+
+For other MCP clients, or to manually create `.mcp.json` / `mcp_config.json`:
 
 ```json
 {
@@ -67,34 +74,12 @@ Add the following to the target project's `.claude/settings.local.json` (takes e
         "/path/to/SKILLful-mcp-docx-processor",
         "python",
         "server.py"
-      ]
+      ],
+      "env": {}
     }
   }
 }
 ```
-
-### Global Configuration
-
-Add the following to `~/.claude/settings.json` (takes effect for all projects):
-
-```json
-{
-  "mcpServers": {
-    "docx-processor": {
-      "command": "uv",
-      "args": [
-        "run",
-        "--directory",
-        "/path/to/SKILLful-mcp-docx-processor",
-        "python",
-        "server.py"
-      ]
-    }
-  }
-}
-```
-
-> Replace `/path/to/SKILLful-mcp-docx-processor` with the actual path to this project.
 
 ## Install Skill
 
@@ -139,6 +124,8 @@ After installation, the directory structure is as follows:
 
 Claude Code automatically loads `SKILL.md` before calling `docx_process`, ensuring every call has the complete route and parameter reference.
 
+---
+
 ## Usage
 
 Once configured, the `docx_process` tool becomes available in Claude Code. The tool uses a single gateway pattern:
@@ -165,19 +152,22 @@ The server exposes one tool (`docx_process`) that dispatches to handler function
 
 If all 63 routes were written into the tool's docstring or loaded at once, it would consume a large portion of the context window. This project uses **on-demand Skill loading** to significantly reduce context overhead:
 
-| Loading Stage | Content | Lines |
-|---|---|---|
-| Tool schema | Docstring (parameter specs only) | 6 |
-| Every call | SKILL.md route table | 116 |
-| On demand | Single reference file | 47-177 |
-| **Total per call** | | **169-299** |
+| Loading Stage      | Content                          | Lines       |
+| ------------------ | -------------------------------- | ----------- |
+| Tool schema        | Docstring (parameter specs only) | 6           |
+| Every call         | SKILL.md route table             | 116         |
+| On demand          | Single reference file            | 47-177      |
+| **Total per call** |                                  | **169-299** |
 
 Compared to a naive approach (docstring with full route list ~30 lines + full SKILL.md 595 lines = ~625 lines), **context usage is reduced by 52-73%**.
 
 This means:
+
 - **More room for actual tasks** — saved context can be used for document content and business logic
 - **Faster responses** — fewer tokens means faster inference
 - **Lower costs** — significantly fewer tokens consumed per call
+
+---
 
 ## Robustness
 
