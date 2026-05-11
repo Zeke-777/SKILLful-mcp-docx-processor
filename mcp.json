@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "docx-processor": {
+      "command": "uv",
+      "args": [
+	"run", 
+	"--directory", 
+	"The directory address of your MCP server", 
+	"python", 
+	"server.py"
+	],
+      "env": {}
+    }
+  }
+}

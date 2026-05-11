@@ -1,0 +1,10 @@
+[project]
+name = "docx-mcp-server"
+version = "0.1.0"
+description = "MCP server for processing Word documents"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.0.0,<2.0.0",
+    "python-docx~=1.1.0",
+    "lxml>=5.0.0",
+]
